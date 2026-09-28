@@ -31,3 +31,12 @@ export async function saveSetting<T>(k: string, v: T) { await set('setting:' + k
 export async function loadSetting<T>(k: string): Promise<T | undefined> {
   return (await get('setting:' + k)) as T | undefined;
 }
+
+export async function setActiveProfile(id: string | null) {
+  await saveSetting('activeProfileId', id);
+}
+export async function getActiveProfile(): Promise<HearingProfile | null> {
+  const id = await loadSetting<string | null>('activeProfileId');
+  if (!id) return null;
+  return (await profiles.load(id)) ?? null;
+}

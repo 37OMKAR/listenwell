@@ -6,7 +6,8 @@ import { modelLabel } from '../models/loaders';
 import { Slider } from './components/Slider';
 import { Meter } from './components/Meter';
 import { Spectrum } from './components/Spectrum';
-import { loadSetting, saveSetting } from '../storage/profiles';
+import { getActiveProfile, loadSetting, saveSetting } from '../storage/profiles';
+import type { HearingProfile } from '../storage/profiles';
 
 const MODEL_ORDER: ModelId[] = ['off', 'gate', 'speex', 'rnnoise'];
 
@@ -22,6 +23,7 @@ export function ListenScreen() {
   const [outId, setOutId] = useState<string | undefined>();
   const [error, setError] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [activeProfile, setActiveProfile] = useState<HearingProfile | null>(null);
 
   useEffect(() => {
     engineRef.current.onMeters = setMeters;
@@ -29,6 +31,7 @@ export function ListenScreen() {
     (async () => {
       const saved = await loadSetting<EngineParams>('params');
       if (saved) setParams({ ...defaultParams, ...saved });
+      setActiveProfile(await getActiveProfile());
     })();
     const onChange = async () => refreshDevices();
     navigator.mediaDevices?.addEventListener?.('devicechange', onChange);
@@ -95,6 +98,12 @@ export function ListenScreen() {
           <span class="pill">{running ? `${delayMs.toFixed(0)} ms` : 'idle'}</span>
         </div>
       </div>
+
+      {activeProfile && (
+        <div class="info-box" style={{ marginBottom: 12 }}>
+          👤 Active profile: <b>{activeProfile.name}</b> — personal EQ applied.
+        </div>
+      )}
 
       <div class="card">
         {!running ? (
