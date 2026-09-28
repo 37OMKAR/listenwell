@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" font-family="Inter, system-ui, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b0f14"/>
+      <stop offset="1" stop-color="#05070a"/>
+    </linearGradient>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4fb3ff"/>
+      <stop offset="1" stop-color="#7c5cff"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.2" cy="0.2" r="0.7">
+      <stop offset="0" stop-color="#4fb3ff" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#4fb3ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="0.85" cy="0.75" r="0.55">
+      <stop offset="0" stop-color="#7c5cff" stop-opacity="0.3"/>
+      <stop offset="1" stop-color="#7c5cff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="0.5"/></filter>
+  </defs>
+
+  <rect width="1200" height="360" fill="url(#bg)"/>
+  <rect width="1200" height="360" fill="url(#glow)"/>
+  <rect width="1200" height="360" fill="url(#glow2)"/>
+
+  <!-- Logo tile -->
+  <g transform="translate(80,110)">
+    <rect width="140" height="140" rx="32" fill="url(#brand)"/>
+    <g transform="translate(70,70)" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round">
+      <path d="M-38 6 A38 38 0 0 1 38 6"/>
+      <rect x="-46" y="4" width="20" height="32" rx="7" fill="#fff" stroke="none"/>
+      <rect x="26" y="4" width="20" height="32" rx="7" fill="#fff" stroke="none"/>
+    </g>
+  </g>
+
+  <!-- Text -->
+  <g transform="translate(260,150)" fill="#eaf0f7">
+    <text font-size="72" font-weight="800" letter-spacing="-1.5">ClearHear</text>
+    <text y="55" font-size="24" fill="#8a94a5" font-weight="400">Personal listening aid, right in your browser.</text>
+    <text y="95" font-size="20" fill="#4fb3ff" font-weight="500">On-device AI noise suppression · Speech clarity · Zero cloud</text>
+  </g>
+
+  <!-- Waveform mock -->
+  <g transform="translate(760,210)" opacity="0.9">
+    <g fill="url(#brand)">
+      <rect x="0"   y="-8"  width="6" height="16" rx="2"/>
+      <rect x="12"  y="-22" width="6" height="44" rx="2"/>
+      <rect x="24"  y="-40" width="6" height="80" rx="2"/>
+      <rect x="36"  y="-24" width="6" height="48" rx="2"/>
+      <rect x="48"  y="-56" width="6" height="112" rx="2"/>
+      <rect x="60"  y="-70" width="6" height="140" rx="2"/>
+      <rect x="72"  y="-44" width="6" height="88" rx="2"/>
+      <rect x="84"  y="-60" width="6" height="120" rx="2"/>
+      <rect x="96"  y="-30" width="6" height="60" rx="2"/>
+      <rect x="108" y="-46" width="6" height="92" rx="2"/>
+      <rect x="120" y="-72" width="6" height="144" rx="2"/>
+      <rect x="132" y="-38" width="6" height="76" rx="2"/>
+      <rect x="144" y="-22" width="6" height="44" rx="2"/>
+      <rect x="156" y="-14" width="6" height="28" rx="2"/>
+      <rect x="168" y="-30" width="6" height="60" rx="2"/>
+      <rect x="180" y="-50" width="6" height="100" rx="2"/>
+      <rect x="192" y="-66" width="6" height="132" rx="2"/>
+      <rect x="204" y="-42" width="6" height="84" rx="2"/>
+      <rect x="216" y="-18" width="6" height="36" rx="2"/>
+      <rect x="228" y="-28" width="6" height="56" rx="2"/>
+      <rect x="240" y="-52" width="6" height="104" rx="2"/>
+      <rect x="252" y="-70" width="6" height="140" rx="2"/>
+      <rect x="264" y="-40" width="6" height="80" rx="2"/>
+      <rect x="276" y="-24" width="6" height="48" rx="2"/>
+      <rect x="288" y="-12" width="6" height="24" rx="2"/>
+    </g>
+  </g>
+
+  <!-- Chips -->
+  <g transform="translate(260,290)" font-size="14" fill="#cfe4fa">
+    <g>
+      <rect width="120" height="30" rx="15" fill="#161c26" stroke="#232c3a"/>
+      <text x="60" y="20" text-anchor="middle">💬 Conversation</text>
+    </g>
+    <g transform="translate(130,0)">
+      <rect width="110" height="30" rx="15" fill="#161c26" stroke="#232c3a"/>
+      <text x="55" y="20" text-anchor="middle">🏙 Noisy place</text>
+    </g>
+    <g transform="translate(250,0)">
+      <rect width="120" height="30" rx="15" fill="#161c26" stroke="#232c3a"/>
+      <text x="60" y="20" text-anchor="middle">📺 TV / Lecture</text>
+    </g>
+    <g transform="translate(380,0)">
+      <rect width="110" height="30" rx="15" fill="url(#brand)" stroke="none"/>
+      <text x="55" y="20" text-anchor="middle" fill="#fff">🎵 Music / Voice</text>
+    </g>
+  </g>
+</svg>
