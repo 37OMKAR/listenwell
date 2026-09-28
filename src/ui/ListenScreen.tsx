@@ -24,10 +24,12 @@ export function ListenScreen() {
   const [error, setError] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [activeProfile, setActiveProfile] = useState<HearingProfile | null>(null);
+  const [arrayInfo, setArrayInfo] = useState<{ channels: number; beamforming: boolean } | null>(null);
 
   useEffect(() => {
     engineRef.current.onMeters = setMeters;
     engineRef.current.onDelayMs = setDelayMs;
+    engineRef.current.onArrayInfo = setArrayInfo;
     (async () => {
       const saved = await loadSetting<EngineParams>('params');
       if (saved) setParams({ ...defaultParams, ...saved });
@@ -177,6 +179,31 @@ export function ListenScreen() {
 
       {showAdvanced && (
         <>
+          <div class="card">
+            <h3>🎯 Mic array & beamforming</h3>
+            {arrayInfo ? (
+              <div class="info-box" style={{ marginBottom: 10 }}>
+                Detected <b>{arrayInfo.channels}</b> {arrayInfo.channels === 1 ? 'channel' : 'channels'}
+                {arrayInfo.channels >= 2
+                  ? <> — beamforming {arrayInfo.beamforming ? '<b>ON</b>' : 'off'}.</>
+                  : <> — mono input, beamforming disabled. Only laptops/USB mics with multichannel raw access support this; phones & Bluetooth headsets expose one channel.</>}
+              </div>
+            ) : (
+              <div class="help" style={{ marginBottom: 10 }}>Start listening to detect the mic array.</div>
+            )}
+            <div class="row" style={{ marginBottom: 10 }}>
+              <button
+                class={'chip' + (params.beamform ? ' active' : '')}
+                onClick={() => update({ beamform: !params.beamform })}
+              >{params.beamform ? '● Beamforming ON' : '○ Beamforming OFF'}</button>
+            </div>
+            <Slider label="Steering angle" unit="°" min={-90} max={90} value={params.beamAngle}
+                    onChange={(v) => update({ beamAngle: v })} />
+            <Slider label="Mic spacing" unit=" cm" min={0.5} max={12} step={0.1}
+                    value={params.arraySpacingCm} onChange={(v) => update({ arraySpacingCm: v })} />
+            <div class="help">0° = straight ahead. Set spacing to match your device — laptop arrays ~1.5 cm, USB conference mics 3–8 cm.</div>
+          </div>
+
           <div class="card">
             <h3>Advanced</h3>
             <Slider label="Noise gate" unit="" min={0} max={1} step={0.01} value={params.gate} onChange={(v) => update({ gate: v })} />

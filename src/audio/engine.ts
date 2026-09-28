@@ -2,6 +2,7 @@ import { defaultParams, EngineParams, ModelId } from './params';
 import { makeModelNode } from '../models/loaders';
 import clarityWorkletUrl from './worklets/clarity.worklet.ts?worker&url';
 import meterWorkletUrl from './worklets/meter.worklet.ts?worker&url';
+import beamformWorkletUrl from './worklets/beamform.worklet.ts?worker&url';
 
 const dB = (v: number) => Math.pow(10, v / 20);
 
@@ -30,9 +31,12 @@ export class Engine {
   private currentParams: EngineParams = { ...defaultParams };
 
   private analyser: AnalyserNode | null = null;
+  private beamform: AudioWorkletNode | null = null;
+  private micChannels = 1;
 
   onMeters?: (m: Meters) => void;
   onDelayMs?: (d: number) => void;
+  onArrayInfo?: (info: { channels: number; beamforming: boolean }) => void;
 
   getSpectrum(out: Uint8Array): boolean {
     if (!this.analyser) return false;
@@ -50,25 +54,49 @@ export class Engine {
     const params = opts.params ?? this.currentParams;
     this.currentParams = { ...params };
 
+    // Request the raw mic array if the device exposes multiple channels.
+    // Browsers that don't honour a >1 channelCount silently downmix to mono; safe.
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: {
         deviceId: opts.micId ? { exact: opts.micId } : undefined,
         echoCancellation: false,
         noiseSuppression: false,
         autoGainControl: false,
-        channelCount: 1,
+        channelCount: { ideal: 4 } as any,
         sampleRate: { ideal: 48000 } as any,
       },
     });
     this.stream = stream;
+    const settings = stream.getAudioTracks()[0]?.getSettings() as any;
+    const nCh = Math.max(1, (settings?.channelCount as number) || 1);
+    this.micChannels = nCh;
+
     const ctx = new AudioContext({ sampleRate: 48000, latencyHint: 'interactive' });
     await ctx.resume();
     this.ctx = ctx;
 
     await ctx.audioWorklet.addModule(clarityWorkletUrl);
     await ctx.audioWorklet.addModule(meterWorkletUrl);
+    await ctx.audioWorklet.addModule(beamformWorkletUrl);
 
     const mic = ctx.createMediaStreamSource(stream);
+    // Beamformer: N-channel in, 1-channel out. Passes through when nCh<2 or disabled.
+    const beamform = new AudioWorkletNode(ctx, 'beamform-processor', {
+      numberOfInputs: 1,
+      numberOfOutputs: 1,
+      outputChannelCount: [1],
+      channelCount: nCh,
+      channelCountMode: 'explicit',
+      channelInterpretation: 'discrete',
+    });
+    beamform.port.postMessage({
+      spacingCm: params.arraySpacingCm ?? 1.5,
+      angleDeg: params.beamAngle ?? 0,
+      enabled: (params.beamform ?? true) && nCh >= 2,
+    });
+    this.beamform = beamform;
+    this.onArrayInfo?.({ channels: nCh, beamforming: nCh >= 2 && (params.beamform ?? true) });
+
     const micGain = ctx.createGain(); micGain.gain.value = dB(params.micGain);
     const inMeter = new AudioWorkletNode(ctx, 'meter-processor');
     inMeter.port.onmessage = (e) => { this.meters.inPeak = e.data.peak ?? 0; this.emit(); };
@@ -105,8 +133,9 @@ export class Engine {
     analyser.smoothingTimeConstant = 0.75;
     this.analyser = analyser;
 
-    // wire graph
-    mic.connect(micGain);
+    // wire graph: mic -> beamform (multi→mono) -> micGain -> ...
+    mic.connect(beamform);
+    beamform.connect(micGain);
     micGain.connect(inMeter);
     micGain.connect(model);
     model.connect(wet).connect(mixSum);
@@ -171,6 +200,17 @@ export class Engine {
     )) {
       this.clarity.port.postMessage(patch);
     }
+    if (this.beamform && (patch.beamform !== undefined || patch.beamAngle !== undefined || patch.arraySpacingCm !== undefined)) {
+      this.beamform.port.postMessage({
+        spacingCm: this.currentParams.arraySpacingCm ?? 1.5,
+        angleDeg: this.currentParams.beamAngle ?? 0,
+        enabled: (this.currentParams.beamform ?? true) && this.micChannels >= 2,
+      });
+      this.onArrayInfo?.({
+        channels: this.micChannels,
+        beamforming: (this.currentParams.beamform ?? true) && this.micChannels >= 2,
+      });
+    }
     if (patch.model !== undefined && patch.model !== this.modelId) {
       void this.switchModel(patch.model);
     }
@@ -212,5 +252,6 @@ export class Engine {
     this.limiter = null; this.inMeter = null; this.outMeter = null;
     this.micGainNode = null; this.wetGain = null; this.dryGain = null;
     this.dryDelay = null; this.mixSum = null; this.analyser = null;
+    this.beamform = null; this.micChannels = 1;
   }
 }

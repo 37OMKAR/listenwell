@@ -18,6 +18,9 @@ export interface EngineParams extends ClarityParams {
   volume: number;     // 0..18 dB
   wetDry: number;     // 0..1 (wet)
   model: ModelId;
+  beamform: boolean;
+  beamAngle: number;      // -90..+90 deg
+  arraySpacingCm: number; // mic-to-mic cm
 }
 
 export const defaultParams: EngineParams = {
@@ -35,6 +38,9 @@ export const defaultParams: EngineParams = {
   makeup: 6,
   balance: 0,
   profile: [0, 0, 0, 0, 0, 0],
+  beamform: true,
+  beamAngle: 0,
+  arraySpacingCm: 1.5,
 };
 
 export type Preset = { id: string; label: string; params: Partial<EngineParams> };
